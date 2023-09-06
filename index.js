@@ -31,17 +31,27 @@ const io = new Server(server, {
     pingTimeout: 60000,
     cors: {
         credentials: true,
-        origin: [`http://localhost:${process.env.ClientPort}`]
+        origin: process.env.allowedOrigins
     }
 });
 
-let activeUsers={}
-socketConnect(io,activeUsers)
+let activeUsers = {}
+socketConnect(io, activeUsers)
+
+app.use((req, res, next) => {
+    res.set({
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "*",
+        "Access-Control-Allow-Headers": "'Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token'",
+    });
+
+    next();
+});
 
 app.use(express.json())
 app.use(cors({
     credentials: true,
-    origin: [`http://localhost:${process.env.ClientPort}`]
+    origin: process.env.allowedOrigins
 }))
 
 
@@ -54,9 +64,9 @@ app.use(cookieParser())
 app.use('/api', user)
 app.use('/api/admin', admin)
 app.use('/api/assignee', assignee)
-app.use('/api/task',task)
-app.use('/api/chat',chat)
-app.use('/api/project',project)
+app.use('/api/task', task)
+app.use('/api/chat', chat)
+app.use('/api/project', project)
 
 server.listen(process.env.PORT, () => {
     console.log('Connected');
