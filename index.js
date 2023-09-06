@@ -31,26 +31,26 @@ const io = new Server(server, {
     pingTimeout: 60000,
     cors: {
         credentials: true,
-        origin: process.env.allowedOrigins
+        origin:'*'
     }
 });
 
 let activeUsers = {}
 socketConnect(io, activeUsers)
 
-app.use(function (req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, x-client-key, x-client-token, x-client-secret, Authorization");
-    next();
-});
+// app.use(function (req, res, next) {
+//     res.header("Access-Control-Allow-Origin", "*");
+//     res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
+//     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, x-client-key, x-client-token, x-client-secret, Authorization");
+//     next();
+// });
 
 app.use(express.json())
 app.use(cors({
     credentials: true,
-    origin: process.env.allowedOrigins
+    origin: '*',
+    methods:["GET,HEAD,OPTIONS,POST,PUT"]
 }))
-
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
