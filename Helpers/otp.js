@@ -13,6 +13,7 @@ export async function otpGen(email) {
                 pass: process.env.mailerAuthPass
             }
         })
+        
         const emailOtp = email;
         const freshOTP = `${Math.floor(100000 + Math.random() * 9000)}`
         const expiration = new Date();
@@ -33,7 +34,7 @@ export async function otpGen(email) {
         };
         const data = await transporter.sendMail(mailOptions)
         if (!data) {
-            console.log(data);
+            console.log(data,'no data');
             return false
         } else {
             console.log(`OTP sent to ${email}: ${freshOTP}`);
@@ -41,8 +42,8 @@ export async function otpGen(email) {
         }
 
     } catch (error) {
-        console.log(error);
-        return error
+        console.log(error,'cathba');
+        return false
     }
 
 }
@@ -53,15 +54,16 @@ export async function verifyOtp(otp, email) {
             if (data) {
                 if (data.expiredAt > Date.now()) {
                     if (data.email == email) {
-                        await OTP.findOneAndDelete({ email: email })
-                        console.log('deleted');
+                        const item = await OTP.findOneAndDelete({ email: email })
                         return true
+                    } else {
+                        return 'User not found'
                     }
                 } else {
                     return 'expired'
                 }
             } else {
-                return 'not found'
+                return 'incorrect'
             }
         
     } catch (error) {

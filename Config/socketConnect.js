@@ -27,16 +27,14 @@ export default function socketConnect(io, activeUsers) {
       if (chatRoomId) {
         joined = true
         socket.join(chatRoomId)
-        console.log('joined');
+        console.log('joined',userIds.sender_id);
       }
-
+      io.emit("active-users", activeUsers);
     });
 
     socket.on("disconnectUser", (userId) => {
       Object.keys(activeUsers).forEach((key) => {
-        console.log(activeUsers);
         if (activeUsers[key].user_id === userId) {
-          console.log('deleted');
           delete activeUsers[key];
         }
       });

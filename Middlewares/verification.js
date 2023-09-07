@@ -9,10 +9,10 @@ export const verifyUser = async (req, res, next) => {
         if (token) {
             const decoded = Jwt.verify(token, process.env.jwtSecret);
             if (decoded) {
-                const user = await User.findById(decoded.userId)
-                if (user) {
+                // const user = await User.findById(decoded.userId)
+                // if (user) {
                     next()
-                }
+                // }
             } else {
                 console.log('jwt not verified');
                 res.status(403).json('Jwt authentication failed')
@@ -25,16 +25,13 @@ export const verifyUser = async (req, res, next) => {
 
 }
 
-export const verifyAssignee = async (req, res, next) => {
+export const verifyAdmin = async (req, res, next) => {
     try {
         const token = req.headers['token']
         if (token) {
-            const decoded = Jwt.verify(token, process.env.jwtSecret);
+            const decoded = Jwt.verify(token, process.env.jwtAdminSecret);
             if (decoded) {
-                const user = await Assignee.findById(decoded.userId)
-                if (user) {
                     next()
-                }
             } else {
                 console.log('jwt not verified');
                 res.status(403).json('Jwt authentication failed')

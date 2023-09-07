@@ -21,7 +21,7 @@ export const getManager = async (req, res) => {
                 fname: manager.name,
                 email: manager.email,
                 _id: manager._id,
-                image:manager.image.url
+                image: manager.image.url
             }
             res.status(200).json(user)
         } else {
@@ -84,14 +84,20 @@ export const register = async (req, res) => {
             res.status(400).json('Email is already registered')
         } else {
             otpGen(email).then((otp) => {
-                res.status(200).json({
-                    name, password, email
-                });
+                if (otp) {
+                    res.status(200).json({
+                        name, password, email
+                    });
+                } else {
+                    res.status(500).json('Network error in server side, Please wait...')
+                }
+
             })
 
         }
     } catch (err) {
-        console.log(err);
+        console.log(err, 'catchfro');
+        res.status(err.statusCode).json(err.message)
     }
 }
 
@@ -110,11 +116,12 @@ export const storeUser = async (req, res) => {
             })
         } else {
             const value = await verifyOtp(otp, email)
-
-            if (value == 'expired') {
+            if (value == 'incorrect') {
+                res.status(401).json('Incorrect OTP')
+            } else if (value == 'expired') {
                 await OTP.findOneAndDelete({ otp: otp })
-                res.status(503).send('Expired')
-            } else if (value == 'not found') {
+                res.status(503).send('OTP Expired')
+            } else if (value == 'User not found') {
                 res.status(404).send(value)
             } else {
                 const user = new User({

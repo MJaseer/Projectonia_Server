@@ -1,5 +1,6 @@
 import messageModel from "../Models/message.js";
 import chatRoomModel from "../Models/conversation.js";
+import Assignee from "../Models/employee.js"
 
 export const createNewChatRoom = async (req, res) => {
   try {
@@ -118,9 +119,9 @@ export const getChatMessages = async (req, res) => {
 
     const lastMessage = await messageModel
       .findOne({ chatRoom_id: roomDetail._id })
-      .sort({ createdAt : -1 }) 
-      const flaseId = lastMessage.user_id.toString()
-    console.log( sender_id,flaseId);
+      .sort({ createdAt: -1 })
+    const flaseId = lastMessage.user_id.toString()
+    console.log(sender_id, flaseId);
     if (flaseId != sender_id) {
       await roomDetail.updateOne({ $set: { readReciept: true } })
     }
@@ -140,8 +141,57 @@ export const getChatMessages = async (req, res) => {
         };
       }
     });
-    res.json({messages,roomDetail});
+    res.json({ messages, roomDetail });
   } catch (error) {
     console.log("Eror", error);
   }
 };
+
+export const getChaters = async (req, res) => {
+  const id = req.params.id
+  const assigne = await Assignee.findById(id)
+  let managerId;
+  let userData = []
+
+  if (assigne) {
+    managerId = assigne?.managerId
+    const roomDetail = await chatRoomModel.findOne({
+      $or: [
+        { sender_id: managerId, receiver_id: id },
+        { sender_id: id, receiver_id: managerId },
+      ],
+    });
+    if (roomDetail) {
+      userData.push({ readed: roomDetail.readReciept, fname: 'Manager', user_id: managerId })
+    } else {
+      userData.push({ readed: false, fname: 'Manager', user_id: managerId })
+    }
+  } else {
+    managerId = id
+  }
+  if (managerId) {
+    const users = await Assignee.find({ managerId: managerId })
+    if (users) {
+
+      for (const assigne of users) {
+        if (assigne._id != id) {
+          const roomDetail = await chatRoomModel.findOne({
+            $or: [
+              { sender_id: assigne._id, receiver_id: id },
+              { sender_id: id, receiver_id: assigne._id },
+            ],
+          });
+          if (roomDetail) {
+            userData.push({ readed: roomDetail.readReciept, fname: assigne.fname, user_id: assigne._id })
+          } else {
+            userData.push({ readed: false, fname: assigne.fname, user_id: assigne._id })
+          }
+
+        }
+      }
+    }
+
+    console.log(userData);
+    res.status(200).json(userData)
+  }
+}

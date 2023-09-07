@@ -28,7 +28,7 @@ db()
 
 const server = createServer(app);
 app.use((req, res, next) => {                      
-    res.setHeader('Access-Control-Allow-Origin', 'https://64f812281a439a3ba9b52ffe--projectonia.netlify.app');
+    res.setHeader('Access-Control-Allow-Origin', process.env.allowedOrigins);
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.setHeader('Access-Control-Allow-Credentials', 'true'); // Enable credentials
@@ -40,7 +40,7 @@ const io = new Server(server, {
     pingTimeout: 60000,
     cors: {
         credentials: true,
-        origin:'https://64f812281a439a3ba9b52ffe--projectonia.netlify.app'
+        origin:process.env.allowedOrigins
     }
 });
 
@@ -50,7 +50,7 @@ socketConnect(io, activeUsers)
 app.use(express.json())
 app.use(cors({
     credentials: true,
-    origin: "https://64f812281a439a3ba9b52ffe--projectonia.netlify.app",
+    origin: process.env.allowedOrigins,
     methods: ["GET,HEAD,OPTIONS,POST,PUT"]
 }))
 
@@ -63,9 +63,9 @@ app.use(cookieParser())
 app.use('/api', user)
 app.use('/api/admin', admin)
 app.use('/api/assignee', assignee)
-app.use('/api/task', task)
-app.use('/api/chat', chat)
-app.use('/api/project', project)
+app.use('/api/task',verifyUser, task)
+app.use('/api/chat',verifyUser, chat)
+app.use('/api/project',verifyUser, project)
 
 server.listen(process.env.PORT, () => {
     console.log('Connected');

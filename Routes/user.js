@@ -20,19 +20,19 @@ router.post('/login',login)
 
 router.post('/addAssignee/:id',addAssignee)
 
-router.get('/getAssignee/:id',getAssignee)
+router.get('/getAssignee/:id',verifyUser,getAssignee)
 
-router.patch('/editAssignee/:id',editAssignee)
+router.patch('/editAssignee/:id',verifyUser,editAssignee)
 
-router.delete('/deleteAssignee/:id',deleteAssignee)
+router.delete('/deleteAssignee/:id',verifyUser,deleteAssignee)
 
-router.post('/getManager/:manager_id', getManager)
+router.post('/getManager/:manager_id',verifyUser, getManager)
 
-router.put('/updateManager/:manager_id',updateManager)
+router.put('/updateManager/:manager_id',verifyUser,updateManager)
 
-router.post('/getVerified',getVerified)
+// router.post('/getVerified',getVerified)
 
-router.post('/getImage',profileImage)
+router.post('/getImage',verifyUser,profileImage)
 
 // router.get('/logout', async (req, res) => {
 //     console.log('logout');
