@@ -15,4 +15,5 @@ router.get('/getAllMessages/:sender_id/:receiver_id', getChatMessages)
 router.get('/getChaters/:id',getChaters)
 
 
+
 export default router;

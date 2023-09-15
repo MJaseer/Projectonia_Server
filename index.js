@@ -27,6 +27,7 @@ app.use(morgan('dev'))
 db()
 
 const server = createServer(app);
+
 app.use((req, res, next) => {                      
     res.setHeader('Access-Control-Allow-Origin', process.env.allowedOrigins);
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');

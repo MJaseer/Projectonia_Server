@@ -72,8 +72,10 @@ export const storeMessages = async (req, res) => {
       user_id: sender_id,
       message: message,
     });
+    res.status(200).json('success')
   } catch (error) {
     console.log("Error", error);
+    res.status(500).json(error)
   }
 };
 
@@ -120,7 +122,7 @@ export const getChatMessages = async (req, res) => {
     const lastMessage = await messageModel
       .findOne({ chatRoom_id: roomDetail._id })
       .sort({ createdAt: -1 })
-    const flaseId = lastMessage.user_id.toString()
+    const flaseId = lastMessage?.user_id?.toString()
     console.log(sender_id, flaseId);
     if (flaseId != sender_id) {
       await roomDetail.updateOne({ $set: { readReciept: true } })
@@ -148,50 +150,101 @@ export const getChatMessages = async (req, res) => {
 };
 
 export const getChaters = async (req, res) => {
-  const id = req.params.id
-  const assigne = await Assignee.findById(id)
-  let managerId;
-  let userData = []
+  try {
+    const id = req.params.id
+    const assigne = await Assignee.findById(id)
+    let managerId;
+    let userData = []
+    let chatRoomIds = []
 
-  if (assigne) {
-    managerId = assigne?.managerId
-    const roomDetail = await chatRoomModel.findOne({
-      $or: [
-        { sender_id: managerId, receiver_id: id },
-        { sender_id: id, receiver_id: managerId },
-      ],
-    });
-    if (roomDetail) {
-      userData.push({ readed: roomDetail.readReciept, fname: 'Manager', user_id: managerId })
+    if (assigne) {
+      managerId = assigne?.managerId
+      const roomDetail = await chatRoomModel.findOne({
+        $or: [
+          { sender_id: managerId, receiver_id: id },
+          { sender_id: id, receiver_id: managerId },
+        ],
+      });
+      if (roomDetail) {
+        chatRoomIds.push(roomDetail._id)
+        userData.push({ readed: roomDetail.readReciept, fname: 'Manager', user_id: managerId })
+      } else {
+        userData.push({ readed: false, fname: 'Manager', user_id: managerId })
+      }
     } else {
-      userData.push({ readed: false, fname: 'Manager', user_id: managerId })
+      managerId = id
     }
-  } else {
-    managerId = id
-  }
-  if (managerId) {
-    const users = await Assignee.find({ managerId: managerId })
-    if (users) {
+    if (managerId) {
 
-      for (const assigne of users) {
-        if (assigne._id != id) {
-          const roomDetail = await chatRoomModel.findOne({
-            $or: [
-              { sender_id: assigne._id, receiver_id: id },
-              { sender_id: id, receiver_id: assigne._id },
-            ],
-          });
-          if (roomDetail) {
-            userData.push({ readed: roomDetail.readReciept, fname: assigne.fname, user_id: assigne._id })
-          } else {
-            userData.push({ readed: false, fname: assigne.fname, user_id: assigne._id })
+
+      const users = await Assignee.find({ managerId: managerId })
+      if (users) {
+        for (const assigne of users) {
+          if (assigne._id != id) {
+            const roomDetail = await chatRoomModel.findOne({
+              $or: [
+                { sender_id: assigne._id, receiver_id: id },
+                { sender_id: id, receiver_id: assigne._id },
+              ],
+            });
+            if (roomDetail) {
+              chatRoomIds.push(roomDetail._id)
+              userData.push({ readed: roomDetail.readReciept, fname: assigne.fname, user_id: assigne._id })
+            } else {
+              userData.push({ readed: false, fname: assigne.fname, user_id: assigne._id })
+            }
+
           }
-
         }
       }
-    }
+      const messageDetail = await messageModel.aggregate([
+        {
+          $match: {
+            chatRoom_id: { $in: chatRoomIds }
+          }
+        },
+        {
+          $group: {
+            _id:'$user_id',
+            // chatRoom_id: '$chatRoom_id',
+            latestTime: { $max: '$createdAt' },
+            latestData: { $last: '$message' },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            userid: '$_id',
+            // chatRoomId:'$chatRoom_id',
+            data: '$latestData',
+            time: '$latestTime',
+          },
+        },
+      ]);
+      const readStatusMap = new Map();
+      for (const status of userData) {
+        readStatusMap.set(status.user_id.toString(), status);
+      }
 
-    console.log(userData);
-    res.status(200).json(userData)
+      // Create a new array by combining messageDetail and readStatus based on user_id
+      const combinedArray = messageDetail.filter(message => {
+        const user_id = message.userid.toString();
+        return readStatusMap.has(user_id);
+      }).map(message => {
+        const user_id = message.userid.toString();
+        return { ...message, ...readStatusMap.get(user_id) };
+      });
+      combinedArray.forEach(datas => {
+        datas.time = new Date(datas.time)
+      })
+
+      combinedArray.sort((a, b) => b.time - a.time)
+
+      console.log(combinedArray);
+
+      res.status(200).json(combinedArray)
+    }
+  } catch (error) {
+    res.status(500).json(error)
   }
 }

@@ -124,7 +124,7 @@ export const loginAsignee = async (req, res) => {
         const data = req.body
         const password = data.password
         const employee = await Assignee.findOne({ email: data.email })
-        if (employee) {
+        if (employee) { 
             const token = Jwt.sign({ userId: employee._id, email: employee.email }, process.env.jwtSecret)
             if ((await bcrypt.compare(password, employee.password))) {
                 res.send({
