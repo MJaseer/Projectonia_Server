@@ -198,11 +198,11 @@ export const getChaters = async (req, res) => {
         }
       }
       const messageDetail = await messageModel.aggregate([
-        {
-          $match: {
-            chatRoom_id: { $in: chatRoomIds }
-          }
-        },
+        // {
+        //   $match: {
+        //     chatRoom_id: { $in: chatRoomIds }
+        //   }
+        // },
         {
           $group: {
             _id:'$user_id',

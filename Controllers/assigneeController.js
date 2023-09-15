@@ -4,7 +4,8 @@ import bcrypt from 'bcrypt'
 import Moment from 'moment'
 import Jwt from "jsonwebtoken";
 import User from '../Models/user.js';
-
+import Chatroom from '../Models/conversation.js'
+import Messages from '../Models/message.js'
 
 export const addAssignee = async (req, res) => {
     const data = req.body
@@ -107,6 +108,8 @@ export const deleteAssignee = async (req, res) => {
                     assigneeArray.push(ids)
                 }
             })
+            const chatrooms = await Chatroom.find({ $or:[{sender_id:id},{receiver_id:id}]})
+            // const messages = await Messages.aggregate({})
             await manager.updateOne({ $set: { assignee: assigneeArray } })
             res.status(200).send({ message: 'success' })
         } else {
