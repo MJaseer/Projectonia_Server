@@ -242,7 +242,7 @@ export const getChaters = async (req, res) => {
 
       console.log(combinedArray);
 
-      res.status(200).json(combinedArray)
+      res.status(200).json(userData)
     }
   } catch (error) {
     res.status(500).json(error)
