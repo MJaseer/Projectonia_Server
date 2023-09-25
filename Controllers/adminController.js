@@ -26,7 +26,7 @@ export const adminLogin = (req, res) => {
     if (data.email == process.env.adminEmail && data.password == process.env.adminPassword) {
         const token = Jwt.sign({ userId: data.password, email: data.email }, process.env.jwtAdminSecret)
 
-        res.send({
+        res.status(200).json({
             admin: 'admin',
             email: 'jaseer@gmail.com',
             token: token
@@ -40,13 +40,13 @@ export const getUsers =  async (req, res) => {
     try {
         const managerDet = await User.find()
         if (managerDet) {
-            res.status(200).send(managerDet)
+            res.status(200).json(managerDet)
         } else {
             res.status(404).json('No user found')
         }
     } catch (error) {
         console.log(error.message);
-        res.status(error.status).send(error.message)
+        res.status(error.status).json(error.message)
     }
 
 
@@ -63,12 +63,12 @@ export const blockUser =  async (req, res) => {
                     status: updatedManager.status
                 }
             })
-            res.status(200).send(updatedManager)
+            res.status(200).json(updatedManager)
         } else {
             res.status(404).json('User not found')
         }
     } catch (error) {
         console.log(error.message);
-        res.status(error.status).send(error.message)
+        res.status(error.status).json(error.message)
     }
 }

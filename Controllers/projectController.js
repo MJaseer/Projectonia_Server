@@ -13,12 +13,12 @@ export const newProject = async (req, res) => {
         })
         await newProject.save();
         await User.findByIdAndUpdate(managerId, { $push: { projects: newProject._id } })
-        res.send(newProject)
+        res.status(200).json(newProject)
 
     } catch (error) {
 
         console.log(error);
-        res.statusCode(500).send(error)
+        res.status(500).json(error)
     }
 }
 
@@ -37,15 +37,15 @@ export const getProject = async (req, res) => {
                 tasks: [],
                 __v: 0
             }]
-            res.send(dummy)
+            res.status(200).json(dummy)
 
         } else {
-            res.send(data)
+            res.status(200).json(data)
 
         }
     } catch (error) {
         console.log(error);
-        res.status(500).send(error)
+        res.status(500).json(error)
     }
 }
 
@@ -55,24 +55,23 @@ export const deleteProject = async (req, res) => {
             const id = req.params.id
             const project = await Project.findById(id)
             const user = await User.findById(project.managerId)
+            let afterDelete = []
             user.projects.filter((projetcs) => {
 
                 if (projetcs._id != id) {
                     afterDelete.push(projetcs._id)
                 }
             })
-            // for(let item of project){
-                
-            // }
-            let afterDelete = []
+
+            await Task.deleteMany({projectId:project._id})
             await user.updateOne({ $set: { projects: afterDelete } })
             await project.deleteOne()
-            res.send({ message: 'success' })
+            res.status(200).json({ message: 'success' })
         }
     } catch (error) {
         console.log(error);
         res.statusCode(404)
-            .send(error)
+            .json(error)
     }
 }
 
@@ -90,14 +89,14 @@ export const getAllProject = async (req, res) => {
                 tasks: [],
                 __v: 0
             }]
-            res.send(dummy)
+            res.status(200).json(dummy)
 
         } else {
-            res.send(data)
+            res.status(200).json(data)
 
         }
     } catch (error) {
         console.log(error);
-        res.status(500).send(error)
+        res.status(500).json(error)
     }
 }

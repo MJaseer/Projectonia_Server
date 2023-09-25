@@ -12,26 +12,26 @@ cloudinary.config({
 });
 
 const storage = new CloudinaryStorage({
-    cloudinary,
-    params: {
-      folder: "Projectonia",
-      allowedFormats: ["jpeg", "png", "jpg"],
-    },
-  });
+  cloudinary,
+  params: {
+    folder: "Projectonia",
+    allowedFormats: ["jpeg", "png", "jpg"],
+  },
+});
 
-  const fileFilter = (req, file, cb) => {
-    if (!["image/png", "image/jpg", "image/jpeg"].includes(file.mimetype)) {
-      return cb(new Error("File is not an image"));
-    }
-    return cb(null, true);
-  };
+const fileFilter = (req, file, cb) => {
+  if (!["image/png", "image/jpg", "image/jpeg"].includes(file.mimetype)) {
+    return cb(new Error("File is not an image"));
+  }
+  return cb(null, true);
+};
 
 const upload = multer({ storage, fileFilter });
 
 const uploadImage = (req, res, next) => {
-
+  debugger
   upload.single('image')(req, res, (err) => {
-    console.log("req")
+    console.log("req",res,req)
     if (err) {
       console.error(err);
       if (err.message === "File is not an image") {
@@ -43,9 +43,8 @@ const uploadImage = (req, res, next) => {
     }
     console.log("reached to cloudinary")
 
-   return next();
+    return next();
   });
 };
-
 
 export default uploadImage;

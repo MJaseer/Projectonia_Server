@@ -8,58 +8,61 @@ import Chatroom from '../Models/conversation.js'
 import Messages from '../Models/message.js'
 
 export const addAssignee = async (req, res) => {
-    const data = req.body
-    const managerId = req.params.id
+    try {
 
-    let hashedPassword;
-    bcrypt.hash(req.body.password, 10, async (err, hash) => {
-        if (err) {
-            console.log(err.message);
-            res.status(503)
-                .send({ message: `Error occured ${err}` })
-        } else {
-            const check = await Assignee.findOne({ email: data.email })
-            if (check) {
-                res.status(400).json('Email is already registered')
+
+        const data = req.body
+        const managerId = req.params.id
+
+        let hashedPassword;
+        bcrypt.hash(req.body.password, 10, async (err, hash) => {
+            if (err) {
+                console.log(err.message);
+                res.status(503)
+                    .json({ message: `Error occured ${err}` })
             } else {
-                hashedPassword = hash
-                const Assigne = new Assignee({
-                    fname: data.fname,
-                    lname: data.lname,
-                    email: data.email,
-                    password: hashedPassword,
-                    phone: data.phone,
-                    place: data.place,
-                    post: data.post,
-                    skill: data.skill,
-                    timeStamp: Moment().format('DD/MM/YYYY'),
-                    managerId: managerId
-                })
+                const check = await Assignee.findOne({ email: data.email })
+                if (check) {
+                    res.status(400).json('Email is already registered')
+                } else {
+                    hashedPassword = hash
+                    const Assigne = new Assignee({
+                        fname: data.fname,
+                        lname: data.lname,
+                        email: data.email,
+                        password: hashedPassword,
+                        phone: data.phone,
+                        place: data.place,
+                        post: data.post,
+                        skill: data.skill,
+                        timeStamp: Moment().format('DD/MM/YYYY'),
+                        managerId: managerId
+                    })
 
-                await Assigne.save()
-                await User.findByIdAndUpdate(managerId, {
-                    $set: { assignee: managerId }
-                })
-                res.send(Assigne)
+                    await Assigne.save()
+                    await User.findByIdAndUpdate(managerId, {
+                        $set: { assignee: managerId }
+                    })
+                    res.status(200).json(Assigne)
+                }
             }
-        }
-    })
-
+        })
+    } catch (error) {
+        res.status(500).json(error)
+    }
 }
 
 export const getAssignee = async (req, res) => {
     try {
         const managerId = req.params.id
         const assignee = await Assignee.find({ managerId: managerId })
-        res.send(
+        res.status(200).json(
             assignee
         )
     } catch (err) {
         console.log(err);
         res.status(404)
-            .send({
-                message: err
-            })
+            .json(err)
     }
 }
 
@@ -82,7 +85,7 @@ export const editAssignee = async (req, res) => {
                         }
                     })
                 console.log(update, 'after');
-                res.send(
+                res.status(200).json(
                     update
                 )
             } else {
@@ -91,7 +94,7 @@ export const editAssignee = async (req, res) => {
         }
     } catch (err) {
         res.status(500)
-            .send({ message: err })
+            .json({ message: err })
     }
 }
 
@@ -108,17 +111,17 @@ export const deleteAssignee = async (req, res) => {
                     assigneeArray.push(ids)
                 }
             })
-            const chatrooms = await Chatroom.find({ $or:[{sender_id:id},{receiver_id:id}]})
+            const chatrooms = await Chatroom.find({ $or: [{ sender_id: id }, { receiver_id: id }] })
             // const messages = await Messages.aggregate({})
             await manager.updateOne({ $set: { assignee: assigneeArray } })
-            res.status(200).send({ message: 'success' })
+            res.status(200).json({ message: 'success' })
         } else {
-            res.status(404).send('not found')
+            res.status(404).json('not found')
         }
 
     } catch (error) {
         console.log(error);
-        res.status(500).send(error)
+        res.status(500).json(error)
     }
 }
 
@@ -127,10 +130,10 @@ export const loginAsignee = async (req, res) => {
         const data = req.body
         const password = data.password
         const employee = await Assignee.findOne({ email: data.email })
-        if (employee) { 
+        if (employee) {
             const token = Jwt.sign({ userId: employee._id, email: employee.email }, process.env.jwtSecret)
             if ((await bcrypt.compare(password, employee.password))) {
-                res.send({
+                res.status(200).json({
                     _id: employee._id,
                     email: employee.email,
                     token: token,

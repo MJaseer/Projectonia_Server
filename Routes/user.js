@@ -3,6 +3,7 @@ import express from 'express'
 import { checkForgotToken, forgotPasswordSend, getManager, getVerified, login, profileImage, register, setToken, storeUser, updateManager,  } from '../Controllers/managerController.js'
 import { addAssignee, deleteAssignee, editAssignee, getAssignee } from '../Controllers/assigneeController.js'
 import { verifyUser } from '../Middlewares/verification.js'
+import uploadImage from '../Middlewares/multer.js'
 
 const router = express.Router()
 
@@ -32,12 +33,12 @@ router.put('/updateManager/:manager_id',verifyUser,updateManager)
 
 // router.post('/getVerified',getVerified)
 
-router.post('/getImage',verifyUser,profileImage)
+router.post('/getImage',verifyUser,uploadImage,profileImage)
 
 // router.get('/logout', async (req, res) => {
 //     console.log('logout');
 //     res.clearCookie('jwtToken');
-//     res.status(200).send({
+//     res.status(200).json({
 //         message: 'success'
 //     })   
 // })

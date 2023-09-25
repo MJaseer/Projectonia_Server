@@ -12,19 +12,19 @@ export const getTask = async (req, res) => {
         if (id) {
             const tasks = await Task.find({ managerId: id })
             if (tasks) {
-                res.send(tasks)
+                res.status(200).json(tasks)
             } else {
-                res.send('No data found')
+                res.status(200).json('No data found')
             }
         } else {
             res
                 .status(404)
-                .send()
+                .json()
         }
     } catch (error) {
         console.log(error)
         res.status(503)
-            .send(error)
+            .json(error)
     }
 }
 
@@ -58,14 +58,14 @@ export const createTask = async (req, res) => {
                         tasks: newTask._id
                     }
                 }).then(() => {
-                    res.send(newTask)
+                    res.status(200).json(newTask)
                 })
         }
 
     } catch (error) {
         console.log(error);
         res.status(404)
-            .send(error)
+            .json(error)
     }
 }
 
@@ -78,6 +78,7 @@ export const updateTask = async (req, res) => {
                 id: data.assigneeId,
                 task: details
             }
+            let change = true
             let content;
             if (details.assigneeId != data.assigneeId) {
                 content = 'Updated assignee '
@@ -92,55 +93,57 @@ export const updateTask = async (req, res) => {
             } else if (details.description != data.description) {
                 content = `Updated description ${data.description}`
             } else {
+                change = false
+            }
+            console.log('content:',content);
+
+            if(change){
+                if (data.modifier != undefined) {
+                    await History.create({
+                        content: content,
+                        doneBy: data.modifier,
+                        tasks: id
+                    })
+                } else {
+                    await History.create({
+                        content: content,
+                        doneBy: details.managerId,
+                        tasks: id
+                    })
+                }
+    
+                if (details.assigneeId != data.assigneeId) {
+                    sendMail(user, 'task')
+                    await Assignee.findByIdAndUpdate(details.assigneeId, {
+                        $push: {
+                            tasks: details._id
+                        }
+                    })
+                }
+                if (id != undefined) {
+                    await Task.findByIdAndUpdate(id,
+                        {
+                            $set:
+                            {
+                                title: data.title,
+                                modifiedAt: Date.now(),
+                                priority: data.priority,
+                                description: data.description,
+                                status: data.status,
+                                dueDate: data.dueDate,
+                                assigneeId: data.assigneeId
+                            }
+                        }
+                    )
+                    res.status(200).json(data)
+                }
+            } else {
                 res.json(data)
             }
-
-            if (data.modifier != undefined) {
-                await History.create({
-                    content: content,
-                    doneBy: data.modifier,
-                    tasks: id
-                })
-            } else {
-                await History.create({
-                    content: content,
-                    doneBy: details.managerId,
-                    tasks: id
-                })
-            }
-
-            if (details.assigneeId != data.assigneeId) {
-                sendMail(user, 'task')
-                await Assignee.findByIdAndUpdate(details.assigneeId, {
-                    $push: {
-                        tasks: details._id
-                    }
-                })
-            }
         })
-        if (id != undefined) {
-            await Task.findByIdAndUpdate(id,
-                {
-                    $set:
-                    {
-                        title: data.title,
-                        modifiedAt: Date.now(),
-                        priority: data.priority,
-                        description: data.description,
-                        status: data.status,
-                        dueDate: data.dueDate,
-                        assigneeId: data.assigneeId
-                    }
-                }
-            )
-            res.send(data)
-
-        } else {
-            res.status(404)
-        }
     } catch (error) {
         console.log(error);
-        res.status(404)
+        res.status(404).json(error)
     }
 }
 
@@ -162,12 +165,12 @@ export const deleteTask = async (req, res) => {
                 await assignee.updateOne({ $set: { tasks: taskArray } })
             }
 
-            res.send({ message: 'success' })
+            res.status(200).json({ message: 'success' })
         }
     } catch (error) {
         console.log(error);
         res.status(404)
-            .send(error)
+            .json(error)
     }
 }
 
@@ -222,14 +225,14 @@ export const getAllTask = async (rea, res) => {
     try {
         const tasks = await Task.find()
         if (tasks) {
-            res.status(200).send(tasks)
+            res.status(200).json(tasks)
         } else {
-            res.status(404).send('No data found')
+            res.status(404).json('No data found')
         }
 
     } catch (error) {
         console.log(error)
         res.status(503)
-            .send(error)
+            .json(error)
     }
 }

@@ -1,7 +1,6 @@
 import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
-import bodyParser from 'body-parser'
 import morgan from 'morgan'
 import db from './Config/dbConnect.js'
 
@@ -32,8 +31,7 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', process.env.allowedOrigins);
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.setHeader('Access-Control-Allow-Credentials', 'true'); // Enable credentials
-
+    res.setHeader('Access-Control-Allow-Credentials', 'true'); 
     next();
 });
 
@@ -48,18 +46,15 @@ const io = new Server(server, {
 let activeUsers = {}
 socketConnect(io, activeUsers)
 
-app.use(express.json())
 app.use(cors({
     credentials: true,
     origin: process.env.allowedOrigins,
-    methods: ["GET,HEAD,OPTIONS,POST,PUT"]
+    methods: ["GET,HEAD,OPTIONS,POST,PUT,DELETE"]
 }))
 
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: true }))
 app.use(express.json())
+app.use(express.urlencoded({extended:true,limit:'50mb'}))
 app.use(cookieParser())
-
 
 app.use('/api', user)
 app.use('/api/admin', admin)

@@ -111,7 +111,7 @@ export const storeUser = async (req, res) => {
 
         const record = await User.findOne({ email: email })
         if (record) {
-            return res.status(400).send({
+            return res.status(400).json({
                 message: 'Email is already registered'
             })
         } else {
@@ -120,9 +120,9 @@ export const storeUser = async (req, res) => {
                 res.status(401).json('Incorrect OTP')
             } else if (value == 'expired') {
                 await OTP.findOneAndDelete({ otp: otp })
-                res.status(503).send('OTP Expired')
+                res.status(503).json('OTP Expired')
             } else if (value == 'User not found') {
-                res.status(404).send(value)
+                res.status(404).json(value)
             } else {
                 const user = new User({
                     email: email,
@@ -138,7 +138,7 @@ export const storeUser = async (req, res) => {
         }
     } catch (error) {
         console.log(error);
-        res.status(error.status).send(error.message)
+        res.status(error.status).json(error.message)
     }
 }
 
@@ -200,7 +200,7 @@ export const login = async (req, res) => {
     } else {
         const token = Jwt.sign({ userId: user._id, email: user.email }, process.env.jwtSecret)
 
-        res.send({
+        res.status(200).json({
             _id: user._id,
             email: user.email,
             token: token,
@@ -209,6 +209,7 @@ export const login = async (req, res) => {
     }
 }
 
+
 export const profileImage = async (req, res) => {
     try {
         const { email, image } = req.body;
@@ -216,11 +217,11 @@ export const profileImage = async (req, res) => {
         const user = await User.findOne({ email });
 
         if (user) {
-            console.log(req.body);
 
             const result = await cloudinary.uploader.upload(image, { folder: 'profile' });
-            console.log('Result:', result);
             const { public_id, url } = result
+            console.log('********************************************');
+            console.log('result:',result);
             const updatedImage = {
                 public_id: public_id,
                 url: url
@@ -239,6 +240,5 @@ export const profileImage = async (req, res) => {
         console.error("An error occurred:", error);
         res.status(error.statusCode).json(error)
     }
-
 
 }
