@@ -28,7 +28,7 @@ db()
 const server = createServer(app);
 
 app.use((req, res, next) => {                      
-    res.setHeader('Access-Control-Allow-Origin', process.env.allowedOrigins);
+    res.setHeader('Access-Control-Allow-Origin', "https://projectonia.netlify.app");
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.setHeader('Access-Control-Allow-Credentials', 'true')
@@ -39,7 +39,7 @@ const io = new Server(server, {
     pingTimeout: 60000,
     cors: {
         credentials: true,
-        origin:process.env.allowedOrigins
+        origin:"https://projectonia.netlify.app"
     }
 })
 
@@ -48,7 +48,7 @@ socketConnect(io, activeUsers)
 
 app.use(cors({
     credentials: true,
-    origin: process.env.allowedOrigins,
+    origin: "https://projectonia.netlify.app",
     methods: ["GET,HEAD,OPTIONS,POST,PUT,DELETE"]
 }))
 
