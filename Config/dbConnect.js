@@ -1,8 +1,8 @@
 import mongoose from 'mongoose'
 
-function dbConnect() {
+async function dbConnect() {
     try {
-        mongoose.connect(process.env.MONGODB_URL, {
+        await mongoose.connect(process.env.MONGODB_URL, {
             useNewUrlParser: true,
             useUnifiedTopology: true
         })
@@ -10,6 +10,7 @@ function dbConnect() {
     } catch (err) {
         console.log('data base error\n' + err);
     }
+
 }
 
 export default dbConnect 
